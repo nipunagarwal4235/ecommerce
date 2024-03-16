@@ -23,11 +23,11 @@ const { User } = require("./model/User");
 const { isAuth, sanitizeUser, cookieExtractor } = require("./services/common");
 const path = require("path");
 const { Order } = require("./model/Order");
-import Stripe from 'stripe';
+// import Stripe from "stripe";
 // Webhook
 // TODO: we will capture actual order after deploying out server live on public URL
 // const endpointSecret = process.env.ENDPOINT_SECRET;
-const stripe = new Stripe(process.env.STRIPE_SERVER_KEY);
+const stripe = require("stripe")(process.env.STRIPE_SERVER_KEY);
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 server.post(
   "/webhook",
@@ -158,7 +158,7 @@ passport.deserializeUser(function (user, cb) {
 });
 // Payments
 // This is your test secret API key.
-// const stripe = require("stripe")(process.env.STRIPE_SERVER_KEY);
+
 
 server.post("/create-payment-intent", async (req, res) => {
   const { totalAmount, orderId } = req.body;
