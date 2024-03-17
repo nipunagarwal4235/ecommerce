@@ -159,14 +159,25 @@ passport.deserializeUser(function (user, cb) {
 // Payments
 // This is your test secret API key.
 
-
 server.post("/create-payment-intent", async (req, res) => {
-  const { totalAmount, orderId } = req.body;
+  const { totalAmount, orderId,} = req.body;
 
   // Create a PaymentIntent with the order amount and currency
   const paymentIntent = await stripe.paymentIntents.create({
+    description: "Software development services",
+    shipping: {
+      name: "Jenny Rosen",
+      address: {
+        line1: "510 Townsend St",
+        postal_code: "98140",
+        city: "San Francisco",
+        state: "CA",
+        country: "US",
+      },
+    },
     amount: totalAmount * 100, // for decimal compensation
-    currency: "inr",
+    currency: "usd",
+    // payment_method_types: ['card'],
     automatic_payment_methods: {
       enabled: true,
     },
@@ -179,7 +190,9 @@ server.post("/create-payment-intent", async (req, res) => {
     clientSecret: paymentIntent.client_secret,
   });
 });
+
 main().catch((err) => console.log(err));
+
 async function main() {
   await mongoose.connect(process.env.MONGODB_URL);
   console.log("database connected");
