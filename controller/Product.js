@@ -1,8 +1,10 @@
 const { Product } = require("../model/Product");
 
 exports.createProduct = async (req, res) => {
-  //this is the product we have to get form API body
   const product = new Product(req.body);
+  product.discountPrice = Math.round(
+    product.price * (1 - product.discountPercentage / 100)
+  );
   try {
     const doc = await product.save();
     res.status(201).json(doc);
@@ -12,10 +14,6 @@ exports.createProduct = async (req, res) => {
 };
 
 exports.fetchAllProducts = async (req, res) => {
-  // filter = {"category":["smartphone","laptops"]}
-  // sort = {_sort:"price",_order="desc"}
-  // pagination = {_page:1,_limit=10}
-  // TODO : we have to try with multiple category and brands after change in front-end
   let condition = {};
   if (!req.query.admin) {
     condition.deleted = { $ne: true };
@@ -25,9 +23,9 @@ exports.fetchAllProducts = async (req, res) => {
   let totalProductsQuery = Product.find(condition);
 
   if (req.query.category) {
-    query = query.find({ category: req.query.category });
+    query = query.find({ category: { $in: req.query.category.split(",") } });
     totalProductsQuery = totalProductsQuery.find({
-      category: req.query.category,
+      category: { $in: req.query.category.split(",") },
     });
   }
   if (req.query.brand) {
@@ -73,7 +71,11 @@ exports.updateProduct = async (req, res) => {
     const product = await Product.findByIdAndUpdate(id, req.body, {
       new: true,
     });
-    res.status(200).json(product);
+    product.discountPrice = Math.round(
+      product.price * (1 - product.discountPercentage / 100)
+    );
+    const updatedProduct = await product.save();
+    res.status(200).json(updatedProduct);
   } catch (err) {
     res.status(400).json(err);
   }
